@@ -3,7 +3,7 @@ import gspread
 import json
 import time
 
-from message import send_email
+from pedant_hakaton.tgbot.message import send_email
 
 # Задайте учетные данные
 gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')

@@ -3,10 +3,10 @@ from aiogram import types
 from aiogram import Dispatcher, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from kb_bot import kb_start, kb_choice_result
 from state.filling import FillingCityState, FillingExperienceClientState, FillingExperienceState, FillingMoneyState, FillingNameState, FillingState
+from message import send_email  # Use relative import
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -79,7 +79,7 @@ async def result_filling(message: types.Message, state: FSMContext):
         f'*️⃣ Ожидаемый доход: {money}\n\n'
         f'<b>Все верно?</b>\n\n'
         f'Если допустили ошибку или требуется корректировка,\n'
-        f' нажмите на кнопку "Обновить данные"📳 и ответьте,\n'
+        f' нажмите на кнопку "Обновить данные📳 и ответьте,\n'
         f'пожалуйста, на вопросы еще раз.',
         parse_mode='html', reply_markup=kb_choice_result
     )
@@ -87,10 +87,33 @@ async def result_filling(message: types.Message, state: FSMContext):
 # Обработка выбора пользователя после подтверждения данных
 async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
     if callback.data == "result":
+        reg_data = await state.get_data()
+        name = reg_data.get('name')
+        city = reg_data.get('city')
+        number = reg_data.get('phone')
+        choice1 = reg_data.get('experience')
+        choice2 = reg_data.get('experience_client')
+        money = reg_data.get('money')
+
+        # Формируем тело письма
+        email_body = (
+            f'👤 Имя: {name}\n'
+            f'🏙️ Город: {city}\n'
+            f'📞 Телефон: {number}\n'
+            f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
+            f'📳 Опыт работы с клиентами: {choice2}\n'
+            f'*️⃣ Ожидаемый доход: {money}\n'
+        )
+
+        # Отправляем электронное письмо
+        email = 'klimpetrov25@gmail.com'  # Замените на нужный адрес
+        subject = 'Новая заявка от пользователя'
+        send_email(email, subject, email_body)
+
         await callback.message.answer('Мы начали изучать вашу анкету!\nИ обязательно свяжемся с вами\n' +
                                       'в ближайшее время.\nА пока предлагаем посмотреть\n' +
                                       'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
-                                      '👉 https://youtu.be/PlAcF_CuWPo?si=_lBWGXwMLDNO3M20\nДо скорого!')
+                                      '👉\nДо скорого!')
 
     elif callback.data == "edit":
         await callback.message.answer('Хорошо, давайте начнем с начала. Пожалуйста, отправьте свой номер телефона.')
