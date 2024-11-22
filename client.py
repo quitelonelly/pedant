@@ -61,6 +61,9 @@ output_file_path = os.path.join(os.path.dirname(__file__), 'result.json')
 # Сохраняем JSON в файл
 with open(output_file_path, 'w', encoding='utf-8') as json_file:
     json_file.write(json_data)
+# выводим последнюю запись    
+if __name__ == "__main__":
+    main()
 
 # Выводим сообщение о завершении
 print(f"Данные успешно сохранены в {output_file_path}")
