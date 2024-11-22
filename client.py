@@ -9,6 +9,30 @@ gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton
 # Открываем листы
 applications_ws = gc.open('Копия Сбор анкет').worksheet('Лист1')  # Лист с новыми заявками
 cities_ws = gc.open('Копия Сбор анкет').worksheet('список почт.с городами')  # Лист со списком почт и городов
+# функция для отображение последней записи
+def get_last_record():
+    data = ws.get_all_records()
+    if data:
+        last_record = data[-1]  # Получаем последнюю запись
+        return json.dumps(last_record, ensure_ascii=False)
+    return None
+
+def main():
+    last_displayed_record = None
+
+    while True:
+        last_record = get_last_record()
+        
+        if last_record != last_displayed_record:
+            last_displayed_record = last_record
+            print("Последняя запись:", last_record)
+
+        time.sleep(5)  # Задержка 5 секунд перед следующим запросом
+
+data = ws.get_all_records()
+
+json_data = json.dumps(data, ensure_ascii=False, indent=4)  # Используем indent для красивого форматирования
+
 
 # Получаем все данные из листа с заявками
 applications_data = applications_ws.get_all_records()
