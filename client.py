@@ -25,7 +25,6 @@ def get_cities_list():
 def check_city_in_list(city, cities):
     return city in cities
 
-
 def main():
     last_displayed_record = None
     cities = get_cities_list()  # Загружаем список городов и почт один раз
