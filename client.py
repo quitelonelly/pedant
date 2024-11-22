@@ -1,6 +1,7 @@
 import gspread
 from google.oauth2.service_account import Credentials
 import json
+import os
 
 # Авторизация с использованием учетных данных
 gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')
@@ -14,9 +15,12 @@ data = ws.get_all_records()
 # Преобразуем данные в JSON
 json_data = json.dumps(data, ensure_ascii=False, indent=4)  # Используем indent для красивого форматирования
 
+# Определяем путь к файлу в корневой папке проекта
+output_file_path = os.path.join(os.path.dirname(__file__), 'result.json')
+
 # Сохраняем JSON в файл
-with open('result.json', 'w', encoding='utf-8') as json_file:
+with open(output_file_path, 'w', encoding='utf-8') as json_file:
     json_file.write(json_data)
 
 # Выводим сообщение о завершении
-print("Данные успешно сохранены в result.json")
+print(f"Данные успешно сохранены в {output_file_path}")
