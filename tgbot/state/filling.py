@@ -6,6 +6,9 @@ class FillingState(StatesGroup):
 class FillingNameState(StatesGroup):
     name = State()
 
+class FillingEmailState(StatesGroup):
+    email = State()
+
 class FillingCityState(StatesGroup):
     city = State()
 

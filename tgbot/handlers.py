@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 
 from kb_bot import kb_start, kb_choice_result
-from state.filling import FillingCityState, FillingExperienceClientState, FillingExperienceState, FillingMoneyState, FillingNameState, FillingState
+from state.filling import FillingCityState, FillingEmailState, FillingExperienceClientState, FillingExperienceState, FillingMoneyState, FillingNameState, FillingState
 from message import send_email
 from client  import append_to_google_sheet
 
@@ -16,13 +16,12 @@ logger = logging.getLogger(__name__)
 
 # Начальный экран, где мы благодарим пользователя и предлагаем начать
 async def cmd_start(message: types.Message):
-    await message.answer(
-        '😊Спасибо за ваш интерес к вакансии!\n'
-        'Пожалуйста, ответьте на несколько\n'
-        'вопросов, чтобы мы подобрали для вас\n'
-        'подходящие условия.',
-        reply_markup=kb_start
-    )
+    photo_url = 'https://cdn.businessmens.ru/600x-/franchise_file/1177/abe5e2.jpg'
+    await message.answer_photo(photo=photo_url, caption='😊 Спасибо за ваш интерес к вакансии!\n'
+                                                         'Пожалуйста, ответьте на несколько\n'
+                                                         'вопросов, чтобы мы подобрали для вас\n'
+                                                         'подходящие условия.',
+                                                         reply_markup=kb_start)
 
 # Запрос номера телефона
 async def start_filling(callback: types.CallbackQuery, state: FSMContext):
@@ -35,10 +34,16 @@ async def name_filling(message: types.Message, state: FSMContext):
     await state.update_data(phone=message.text)  # Сохраняем номер телефона
     await state.set_state(FillingNameState.name)
 
+# Запрос почты
+async def email_fillin(message: types.Message, state: FSMContext):
+    await message.answer('📧 Введите свою почту')
+    await state.update_data(name=message.text)  # Сохраняем имя
+    await state.set_state(FillingEmailState.email)  # Переходим к заполнению почты
+
 # Запрос города
 async def city_filling(message: types.Message, state: FSMContext):
+    await state.update_data(email=message.text)  # Сохраняем почту
     await message.answer('🏙️ Введите свой город')
-    await state.update_data(name=message.text)  # Сохраняем имя
     await state.set_state(FillingCityState.city)
 
 # Вопрос о ремонте телефонов
@@ -71,12 +76,13 @@ async def money_filling(message: types.Message, state: FSMContext):
 
 # Подтверждение данных и вывод результата
 async def result_filling(message: types.Message, state: FSMContext):
-    await state.update_data(money=message.text)  # Сохраняем ожидаемый доход
+    await state.update_data(money=message.text)  # Сохраняем город
     reg_data = await state.get_data()
 
     name = reg_data.get('name')
     city = reg_data.get('city')
     number = reg_data.get('phone')
+    email = reg_data.get('email')  # Получаем почту
     choice1 = reg_data.get('experience')
     choice2 = reg_data.get('experience_client')
     money = reg_data.get('money')  # Получаем ожидаемый доход
@@ -86,6 +92,7 @@ async def result_filling(message: types.Message, state: FSMContext):
         f'👤 Имя: {name}\n'
         f'🏙️ Город: {city}\n'
         f'📞 Телефон: {number}\n'
+        f'📧 Почта: {email}\n'  # Выводим почту
         f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
         f'📳 Опыт работы с клиентами: {choice2}\n'
         f'💵 Ожидаемый доход: {money}\n\n'
@@ -96,6 +103,7 @@ async def result_filling(message: types.Message, state: FSMContext):
         parse_mode='html', reply_markup=kb_choice_result
     )
 
+
 async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
     message = callback.message  # Получаем сообщение из колбэка
     if callback.data == "result":
@@ -103,6 +111,7 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
         name = reg_data.get('name')
         city = reg_data.get('city')
         number = reg_data.get('phone')
+        email = reg_data.get('email')  # Получаем почту
         choice1 = reg_data.get('experience')
         choice2 = reg_data.get('experience_client')
         money = reg_data.get('money')
@@ -112,6 +121,7 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
             f'👤 Имя: {name}\n'
             f'🏙️ Город: {city}\n'
             f'📞 Телефон: {number}\n'
+            f'📧 Почта: {email}\n'  # Добавляем почту в тело письма
             f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
             f'📳 Опыт работы с клиентами: {choice2}\n'
             f'💵 Ожидаемый доход: {money}\n'
@@ -119,23 +129,22 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
 
         try:
             # Отправляем электронное письмо
-            email = 'testlolohka@gmail.com'  # Замените на нужный адрес
+            email_address = 'testlolohka@gmail.com'  # Замените на нужный адрес
             subject = 'Новая заявка от пользователя'
-            send_email(email, subject, email_body)
+            send_email(email_address, subject, email_body)
 
             # Записываем данные в Google таблицу
             data_to_append = [
                 name,
                 str(datetime.datetime.now()),  # Дата создания заявки
-                city,  # Здесь можно указать почту, если она есть
-                email,
+                city,
+                email,  # Записываем почту
                 number,
                 choice1,
                 choice2,
                 money,
             ]
             append_to_google_sheet(data_to_append)  # Записываем данные
-
             await message.answer('✅ Мы начали изучать вашу анкету!\nОбязательно свяжемся с вами\n' +
                                  'в ближайшее время.\nА пока предлагаем посмотреть\n' +
                                  'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
@@ -149,12 +158,14 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
         await message.answer('Хорошо, давайте начнем с начала. \nПожалуйста, отправьте свой номер телефона.')
         await state.set_state(FillingState.phone)  # Возвращаемся к началу заполнения данных
 
+
 # Регистрация всех обработчиков
 def reg_handlers(dp: Dispatcher):
     dp.message.register(cmd_start, Command(commands=['start']))
     dp.callback_query.register(start_filling, F.data == "start")
     dp.message.register(name_filling, FillingState.phone)
-    dp.message.register(city_filling, FillingNameState.name)
+    dp.message.register(email_fillin, FillingNameState.name)  # Обновлено для вызова email_fillin
+    dp.message.register(city_filling, FillingEmailState.email)  # Обновлено для вызова city_filling
     dp.message.register(experience_filling, FillingCityState.city)
     dp.message.register(experience_client_filling, FillingExperienceState.experience)
     dp.message.register(money_filling, FillingExperienceClientState.experience_client)
