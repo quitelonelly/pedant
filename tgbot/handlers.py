@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # Начальный экран, где мы благодарим пользователя и предлагаем начать
 async def cmd_start(message: types.Message):
     await message.answer(
-        'Спасибо за ваш интерес к вакансии!\n'
+        '😊Спасибо за ваш интерес к вакансии!\n'
         'Пожалуйста, ответьте на несколько\n'
         'вопросов, чтобы мы подобрали для вас\n'
         'подходящие условия.',
@@ -24,36 +24,36 @@ async def cmd_start(message: types.Message):
 
 # Запрос номера телефона
 async def start_filling(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.answer('<b>Отправьте свой номер телефона</b>\nПример: +7ХХХХХХХХХХ', parse_mode='html')
+    await callback.message.answer('<b>📞 Отправьте свой номер телефона</b>\nПример: <b>+7ХХХХХХХХХХ</b>', parse_mode='html')
     await state.set_state(FillingState.phone)
 
 # Запрос имени
 async def name_filling(message: types.Message, state: FSMContext):
-    await message.answer('Введите свою фамилию и имя')
+    await message.answer('👤 Введите свою фамилию и имя')
     await state.update_data(phone=message.text)  # Сохраняем номер телефона
     await state.set_state(FillingNameState.name)
 
 # Запрос города
 async def city_filling(message: types.Message, state: FSMContext):
-    await message.answer('Введите свой город')
+    await message.answer('🏙️ Введите свой город')
     await state.update_data(name=message.text)  # Сохраняем имя
     await state.set_state(FillingCityState.city)
 
 # Вопрос о ремонте телефонов
 async def experience_filling(message: types.Message, state: FSMContext):
-    await message.answer('Есть ли у Вас опыт работы в сфере ремонтов телефонов?')
+    await message.answer('🛠️ Есть ли у Вас опыт работы в сфере ремонтов телефонов?')
     await state.update_data(city=message.text)
     await state.set_state(FillingExperienceState.experience)
 
 # Вопрос о работе с клиентами
 async def experience_client_filling(message: types.Message, state: FSMContext):
-    await message.answer('Есть ли у Вас опыт работы с клиентом напрямую?')
+    await message.answer('📳 Есть ли у Вас опыт работы с клиентом напрямую?')
     await state.update_data(experience=message.text) 
     await state.set_state(FillingExperienceClientState.experience_client)
 
 # Вопрос о зарплате
 async def money_filling(message: types.Message, state: FSMContext):
-    await message.answer('На какой уровень дохода Вы рассчитываете? (напишите сумму в сообщении)')
+    await message.answer('💵 На какой уровень дохода Вы рассчитываете? (напишите сумму в сообщении)')
     await state.update_data(experience_client=message.text) 
     await state.set_state(FillingMoneyState.money)
 
@@ -76,7 +76,7 @@ async def result_filling(message: types.Message, state: FSMContext):
         f'📞 Телефон: {number}\n'
         f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
         f'📳 Опыт работы с клиентами: {choice2}\n'
-        f'*️⃣ Ожидаемый доход: {money}\n\n'
+        f'💵 Ожидаемый доход: {money}\n\n'
         f'<b>Все верно?</b>\n\n'
         f'Если допустили ошибку или требуется корректировка,\n'
         f'нажмите на кнопку "Обновить данные📳 и ответьте,\n'
@@ -102,15 +102,15 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
             f'📞 Телефон: {number}\n'
             f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
             f'📳 Опыт работы с клиентами: {choice2}\n'
-            f'*️⃣ Ожидаемый доход: {money}\n'
+            f'💵 Ожидаемый доход: {money}\n'
         )
 
         # Отправляем электронное письмо
-        email = 'klimpetrov25@gmail.com'  # Замените на нужный адрес
+        email = 'testlolohka@gmail.com'  # Замените на нужный адрес
         subject = 'Новая заявка от пользователя'
         send_email(email, subject, email_body)
 
-        await callback.message.answer('Мы начали изучать вашу анкету!\nИ обязательно свяжемся с вами\n' +
+        await callback.message.answer('✅ Мы начали изучать вашу анкету!\nОбязательно свяжемся с вами\n' +
                                       'в ближайшее время.\nА пока предлагаем посмотреть\n' +
                                       'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
                                       '👉https://youtu.be/PlAcF_CuWPo?si=_lBWGXwMLDNO3M20\nДо скорого!')
