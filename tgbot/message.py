@@ -6,10 +6,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv # type: ignore
 
-# Укажите основные настройки для отправки электронной почты
-SMTP_SERVER = 'smtp.gmail.com'  # Пример smtp-сервера
-SMTP_PORT = 587  # Стандартный порт для TLS
+# Основные настройки для отправки электронной почты
+SMTP_SERVER = 'smtp.gmail.com'  # Адрес SMTP-сервера
+SMTP_PORT = 587 # Порт для TLS
 
+# Функция для отправки электронного письма
 def send_email(to_email, subject, body):
     load_dotenv()
     sender_email = os.getenv("SENDER_EMAIL")

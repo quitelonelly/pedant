@@ -1,3 +1,4 @@
+# Импортируем необходимые библиотеки и модули
 import logging
 import datetime
 from aiogram import types
@@ -82,17 +83,17 @@ async def result_filling(message: types.Message, state: FSMContext):
     name = reg_data.get('name')
     city = reg_data.get('city')
     number = reg_data.get('phone')
-    email = reg_data.get('email')  # Получаем почту
+    email = reg_data.get('email') 
     choice1 = reg_data.get('experience')
     choice2 = reg_data.get('experience_client')
-    money = reg_data.get('money')  # Получаем ожидаемый доход
+    money = reg_data.get('money') 
 
     await message.answer(
         f'<b>Итак, проверяем</b>\n\n'
         f'👤 Имя: {name}\n'
         f'🏙️ Город: {city}\n'
         f'📞 Телефон: {number}\n'
-        f'📧 Почта: {email}\n'  # Выводим почту
+        f'📧 Почта: {email}\n' 
         f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
         f'📳 Опыт работы с клиентами: {choice2}\n'
         f'💵 Ожидаемый доход: {money}\n\n'
@@ -127,7 +128,8 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
             f'👤 Имя: {name}\n'
             f'🏙️ Город: {city}\n'
             f'📞 Телефон: {number}\n'
-            f'📧 Почта: {email}\n'  # Добавляем почту в тело письма f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
+            f'📧 Почта: {email}\n'  
+            f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
             f'📳 Опыт работы с клиентами: {choice2}\n'
             f'💵 Ожидаемый доход: {money}\n'
         )
@@ -137,25 +139,26 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
             if city_email:
                 subject = 'Новая заявка от пользователя'
                 send_email(city_email, subject, email_body)  # Отправляем на почту из списка
-            else:
-                print(f"Не удалось найти почту для города '{city}'.")
 
-            # Записываем данные в Google таблицу
-            data_to_append = [
-                name,
-                str(datetime.datetime.now()),  # Дата создания заявки
-                city,
-                email,  # Записываем почту
-                number,
-                choice1,
-                choice2,
-                money,
-            ]
-            append_to_google_sheet(data_to_append)  # Записываем данные
-            await message.answer('✅ Мы начали изучать вашу анкету!\nОбязательно свяжемся с вами\n' +
-                                 'в ближайшее время.\nА пока предлагаем посмотреть\n' +
-                                 'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
-                                 '👉 https://youtu.be/PlAcF_CuWPo?si=_lBWGXwMLDNO3M20\nДо скорого!')
+                # Записываем данные в Google таблицу
+                data_to_append = [
+                    name,
+                    str(datetime.datetime.now()),  # Дата создания заявки
+                    city,
+                    email,  # Записываем почту
+                    number,
+                    choice1,
+                    choice2,
+                    money,
+                ]
+                append_to_google_sheet(data_to_append)  # Записываем данные
+                await message.answer('✅ Мы начали изучать вашу анкету!\nОбязательно свяжемся с вами\n' +
+                                    'в ближайшее время.\nА пока предлагаем посмотреть\n' +
+                                    'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
+                                    '👉 https://youtu.be/PlAcF_CuWPo?si=_lBWGXwMLDNO3M20\nДо скорого!')
+
+            else:
+                await message.answer(f'❌ Ошибка при отправке письма!\nПроверьте введенный город.')
 
         except Exception as e:
             logger.error(f'Ошибка при отправке письма или записи в таблицу: {e}')  # Логируем ошибку

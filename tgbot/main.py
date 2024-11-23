@@ -1,10 +1,13 @@
+# Импортируем необходимые библиотеки и модули
 from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 import os
 from handlers import reg_handlers
 
+# Загружаем переменные окружения из файла .env
 load_dotenv()
 
+# Получаем токен бота из переменной окружения
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 
 bot = Bot(token=BOT_TOKEN)
