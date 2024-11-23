@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from kb_bot import kb_start, kb_choice_result
 from state.filling import FillingCityState, FillingEmailState, FillingExperienceClientState, FillingExperienceState, FillingMoneyState, FillingNameState, FillingState
 from message import send_email
-from client  import append_to_google_sheet
+from client  import append_to_google_sheet, get_cities_list, get_email_by_city
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -116,22 +116,29 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
         choice2 = reg_data.get('experience_client')
         money = reg_data.get('money')
 
+        # Получаем список городов и почт
+        cities = get_cities_list()  # Загружаем список городов и почт
+
+        # Получаем почту для данного города
+        city_email = get_email_by_city(city, cities)
+
         # Формируем тело письма
         email_body = (
             f'👤 Имя: {name}\n'
             f'🏙️ Город: {city}\n'
             f'📞 Телефон: {number}\n'
-            f'📧 Почта: {email}\n'  # Добавляем почту в тело письма
-            f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
+            f'📧 Почта: {email}\n'  # Добавляем почту в тело письма f'🛠️ Опыт ремонта смартфонов: {choice1}\n'
             f'📳 Опыт работы с клиентами: {choice2}\n'
             f'💵 Ожидаемый доход: {money}\n'
         )
 
         try:
-            # Отправляем электронное письмо
-            email_address = 'testlolohka@gmail.com'  # Замените на нужный адрес
-            subject = 'Новая заявка от пользователя'
-            send_email(email_address, subject, email_body)
+            # Отправляем электронное письмо на адрес из списка
+            if city_email:
+                subject = 'Новая заявка от пользователя'
+                send_email(city_email, subject, email_body)  # Отправляем на почту из списка
+            else:
+                print(f"Не удалось найти почту для города '{city}'.")
 
             # Записываем данные в Google таблицу
             data_to_append = [
@@ -156,9 +163,8 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
 
     elif callback.data == "edit":
         await message.answer('Хорошо, давайте начнем с начала. \nПожалуйста, отправьте свой номер телефона.')
-        await state.set_state(FillingState.phone)  # Возвращаемся к началу заполнения данных
-
-
+        await state.set_state(FillingState.phone)  # Возвращаемся к началу заполн
+                
 # Регистрация всех обработчиков
 def reg_handlers(dp: Dispatcher):
     dp.message.register(cmd_start, Command(commands=['start']))

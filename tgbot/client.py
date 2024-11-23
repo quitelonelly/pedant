@@ -1,24 +1,12 @@
-# Импортируем необходимые модули
 import gspread
-import json
-import time
-
 from message import send_email
 
 # Задайте учетные данные
 gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')
 ws = gc.open('Копия Сбор анкет').sheet1
-cities_ws = gc.open('Копия Сбор анкет').worksheet('список почт.с городами')
+cities_ws = gc.open('Копия Сбор анкет').worksheet('Копия список почт с городами')
 
 def append_to_google_sheet(data):
-
-    # Открываем таблицу по ее имени
-    gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')
-    ws = gc.open('Копия Сбор анкет').sheet1  # Замените на ваше имя таблицы
-
-
-    # Добавляем данные в таблицу
-
     ws.append_row(data)
 
 def get_last_record():
@@ -30,36 +18,19 @@ def get_last_record():
 
 def get_cities_list():
     cities_data = cities_ws.get_all_records()
-    cities = {record['Город']: record['Список почт по городам'] for record in cities_data if 'Город' in record and 'Список почт по городам' in record}
+    print("Данные из Google Sheets:", cities_data)  # Отладочное сообщение
+    cities = {
+        record['Город']: record['Список почт по городам']  # Используем правильные названия столбцов
+        for record in cities_data 
+        if 'Город' in record and 'Список почт по городам' in record and record['Город'] and record['Список почт по городам']
+    }
+    print("Список городов и почт:", cities)  # Отладочное сообщение
     return cities
 
 def check_city_in_list(city, cities):
     return city in cities
 
-def main():
-    last_displayed_record = None
-    cities = get_cities_list()  # Загружаем список городов и почт один раз
-
-    while True:
-        last_record = get_last_record()
-
-        if last_record != last_displayed_record:
-            last_displayed_record = last_record
-            print("Последняя запись:", last_record)
-
-            city = last_record.get('Город')  # Извлекаем город из последней записи
-            if city and check_city_in_list(city, cities):
-                email = 'testlolohka@gmail.com' # Получаем почту для этого города
-                print(f"Город '{city}' найден в списке с почтой: {email}")
-
-                # Отправляем электронное письмо
-                subject = 'Информация о последней записи'
-                body = json.dumps(last_record, ensure_ascii=False, indent=4)
-                send_email(email, subject, body)
-            else:
-                print(f"Город '{city}' не найден в списке.")
-
-        time.sleep(5)  # Задержка 5 секунд перед следующим запросом
-
-if __name__ == "__main__":
-    main()
+def get_email_by_city(city, cities):
+    email = cities.get(city)
+    print(f"По городу '{city}' найдена почта: {email}")  # Отладочное сообщение
+    return email
