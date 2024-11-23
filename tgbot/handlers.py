@@ -1,4 +1,5 @@
 import logging
+import datetime
 from aiogram import types
 from aiogram import Dispatcher, F
 from aiogram.filters import Command
@@ -6,7 +7,8 @@ from aiogram.fsm.context import FSMContext
 
 from kb_bot import kb_start, kb_choice_result
 from state.filling import FillingCityState, FillingExperienceClientState, FillingExperienceState, FillingMoneyState, FillingNameState, FillingState
-from message import send_email  # Use relative import
+from message import send_email
+from client  import append_to_google_sheet
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -94,10 +96,8 @@ async def result_filling(message: types.Message, state: FSMContext):
         parse_mode='html', reply_markup=kb_choice_result
     )
 
-# Обработка выбора пользователя после подтверждения данных
-# Обработка выбора пользователя после подтверждения данных
 async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
-    message = callback.message  # Get message from the callback
+    message = callback.message  # Получаем сообщение из колбэка
     if callback.data == "result":
         reg_data = await state.get_data()
         name = reg_data.get('name')
@@ -123,14 +123,27 @@ async def handle_confirmation(callback: types.CallbackQuery, state: FSMContext):
             subject = 'Новая заявка от пользователя'
             send_email(email, subject, email_body)
 
+            # Записываем данные в Google таблицу
+            data_to_append = [
+                name,
+                str(datetime.datetime.now()),  # Дата создания заявки
+                city,  # Здесь можно указать почту, если она есть
+                email,
+                number,
+                choice1,
+                choice2,
+                money,
+            ]
+            append_to_google_sheet(data_to_append)  # Записываем данные
+
             await message.answer('✅ Мы начали изучать вашу анкету!\nОбязательно свяжемся с вами\n' +
                                  'в ближайшее время.\nА пока предлагаем посмотреть\n' +
                                  'интереснейшее интервью с основателем Pedant.ru, вот ссылка\n' +
-                                 '👉\nДо скорого!')
+                                 '👉 https://youtu.be/PlAcF_CuWPo?si=_lBWGXwMLDNO3M20\nДо скорого!')
 
         except Exception as e:
-            logger.error(f'Ошибка при отправке письма: {e}')  # Log the error
-            await message.answer(f'❌ Ошибка при отправке письма!\nПроверьте введенный город.')
+            logger.error(f'Ошибка при отправке письма или записи в таблицу: {e}')  # Логируем ошибку
+            await message.answer(f'❌ Ошибка при отправке письма или записи в таблицу!')
 
     elif callback.data == "edit":
         await message.answer('Хорошо, давайте начнем с начала. \nПожалуйста, отправьте свой номер телефона.')

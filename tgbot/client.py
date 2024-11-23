@@ -3,12 +3,23 @@ import gspread
 import json
 import time
 
-from pedant_hakaton.tgbot.message import send_email
+from message import send_email
 
 # Задайте учетные данные
 gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')
 ws = gc.open('Копия Сбор анкет').sheet1
 cities_ws = gc.open('Копия Сбор анкет').worksheet('список почт.с городами')
+
+def append_to_google_sheet(data):
+
+    # Открываем таблицу по ее имени
+    gc = gspread.service_account(filename='/home/klim-petrov/projects/pedant_hakaton/creds.json')
+    ws = gc.open('Копия Сбор анкет').sheet1  # Замените на ваше имя таблицы
+
+
+    # Добавляем данные в таблицу
+
+    ws.append_row(data)
 
 def get_last_record():
     data = ws.get_all_records()
